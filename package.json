@@ -1,0 +1,27 @@
+{
+  "name": "fieldops",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Opsbridge real-time workforce operations platform",
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@12.21.0",
+  "scripts": {
+    "dev": "pnpm --filter @fieldops/shared build && pnpm --parallel --filter @fieldops/api --filter @fieldops/web run dev",
+    "dev:api": "pnpm --filter @fieldops/shared build && pnpm --filter @fieldops/api run dev",
+    "dev:web": "pnpm --filter @fieldops/shared build && pnpm --filter @fieldops/web run dev",
+    "build": "pnpm --filter @fieldops/shared build && pnpm --filter @fieldops/api build && pnpm --filter @fieldops/web build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm --filter @fieldops/shared build && pnpm --filter @fieldops/api test && pnpm --filter @fieldops/api test:e2e",
+    "test:unit": "pnpm --filter @fieldops/shared build && pnpm --filter @fieldops/api test",
+    "test:e2e": "pnpm --filter @fieldops/api test:e2e",
+    "test:browser": "pnpm --filter @fieldops/web test:e2e",
+    "db:generate": "pnpm --filter @fieldops/api db:generate",
+    "db:push": "pnpm --filter @fieldops/api db:push",
+    "db:migrate": "pnpm --filter @fieldops/api db:migrate",
+    "db:deploy": "pnpm --filter @fieldops/api db:deploy",
+    "db:seed": "pnpm --filter @fieldops/api db:seed",
+    "format": "prettier --write \"apps/api/src/**/*.ts\" \"apps/api/test/**/*.ts\" \"packages/shared/src/**/*.ts\""
+  }
+}

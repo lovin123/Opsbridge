@@ -1,0 +1,681 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MemberRole {
+  ORG_ADMIN
+  OPERATIONS_MANAGER
+  SUPERVISOR
+  TECHNICIAN
+}
+
+enum DataScope {
+  ORG
+  SITE
+  ASSIGNED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+enum AuditAction {
+  USER_SIGNED_UP
+  USER_SIGNED_IN
+  USER_SIGNED_OUT
+  PASSWORD_RESET_REQUESTED
+  PASSWORD_RESET_COMPLETED
+  ORGANIZATION_CREATED
+  ORGANIZATION_UPDATED
+  INVITATION_CREATED
+  INVITATION_ACCEPTED
+  INVITATION_REVOKED
+  MEMBER_ROLE_CHANGED
+  PROFILE_UPDATED
+  INCIDENT_CREATED
+  INCIDENT_UPDATED
+  MEDIA_ATTACHED
+  AI_CONTEXT_GENERATED
+  HANDOVER_PUBLISHED
+  ESCALATION_FIRED
+}
+
+enum Availability {
+  AVAILABLE
+  BUSY
+  ON_BREAK
+  OFF_DUTY
+}
+
+enum IncidentCategory {
+  ELECTRICAL
+  MECHANICAL
+  NETWORK
+  EQUIPMENT_FAILURE
+  MAINTENANCE
+  SAFETY_OBSERVATION
+  OTHER
+}
+
+enum IncidentPriority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum IncidentStatus {
+  OPEN
+  ASSIGNED
+  ACCEPTED
+  IN_PROGRESS
+  ON_HOLD
+  RESOLVED
+  CLOSED
+}
+
+enum ChannelKind {
+  INCIDENT
+  TEAM
+  SITE
+  SHIFT
+}
+
+enum ChannelSetupStatus {
+  PENDING
+  READY
+  FAILED
+}
+
+enum MediaPurpose {
+  INCIDENT_PHOTO
+  EQUIPMENT
+  RESOLUTION_EVIDENCE
+  DOCUMENT
+  PROFILE
+  TEAM_LOGO
+  ORG_LOGO
+}
+
+enum NotificationKind {
+  ASSIGNMENT
+  REASSIGNMENT
+  MESSAGE
+  ESCALATION
+  RESOLUTION
+  HANDOVER
+}
+
+enum AiSnapshotStatus {
+  PENDING
+  READY
+  FAILED
+}
+
+enum HandoverStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model User {
+  id            String   @id @db.Uuid
+  email         String   @unique
+  passwordHash  String
+  name          String
+  phone         String?
+  jobTitle      String?
+  nexconnUserId String   @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions            Session[]
+  passwordResetTokens PasswordResetToken[]
+  memberships         Membership[]
+  invitationsSent     Invitation[]         @relation("InvitationSender")
+  auditLogs           AuditLog[]           @relation("AuditActor")
+  teamMembers         TeamMember[]
+  skills              UserSkill[]
+  workforceProfiles   WorkforceProfile[]
+  assignedIncidents   Incident[]           @relation("IncidentAssignee")
+  createdIncidents    Incident[]           @relation("IncidentCreator")
+  incidentEvents      IncidentEvent[]
+  notifications       Notification[]
+  assistantSessions   AiAssistantSession[]
+  mediaUploads        MediaAsset[]
+  shiftAssignments    ShiftAssignment[]
+  supervisedShifts    Shift[]              @relation("ShiftSupervisor")
+  presence            PresenceState?
+}
+
+model Session {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  userAgent String?
+  ipAddress String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Organization {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String   @unique
+  industry  String?
+  timezone  String   @default("Asia/Kolkata")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships       Membership[]
+  invitations       Invitation[]
+  roles             OrganizationRole[]
+  auditLogs         AuditLog[]
+  sites             Site[]
+  teams             Team[]
+  skills            Skill[]
+  shifts            Shift[]
+  incidents         Incident[]
+  channels          ChannelMapping[]
+  mediaAssets       MediaAsset[]
+  notifications     Notification[]
+  escalationPolicy  EscalationPolicy?
+  messageIndex      MessageIndex[]
+  assistantSessions AiAssistantSession[]
+  handovers         ShiftHandover[]
+  uploadGrants      UploadGrant[]
+  workforceProfiles WorkforceProfile[]
+}
+
+model OrganizationRole {
+  id             String     @id @default(uuid()) @db.Uuid
+  organizationId String     @db.Uuid
+  name           String
+  slug           String
+  baseRole       MemberRole
+  dataScope      DataScope
+  permissions    String[]
+  system         Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  memberships  Membership[]
+  invitations  Invitation[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, system])
+}
+
+model Membership {
+  id             String     @id @default(uuid()) @db.Uuid
+  organizationId String     @db.Uuid
+  userId         String     @db.Uuid
+  role           MemberRole
+  orgRoleId      String     @db.Uuid
+  active         Boolean    @default(true)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orgRole      OrganizationRole @relation(fields: [orgRoleId], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@index([organizationId, role])
+  @@index([orgRoleId])
+}
+
+model Invitation {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  email          String
+  role           MemberRole
+  orgRoleId      String           @db.Uuid
+  tokenHash      String           @unique
+  status         InvitationStatus @default(PENDING)
+  invitedById    String           @db.Uuid
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  createdAt      DateTime         @default(now())
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedBy    User             @relation("InvitationSender", fields: [invitedById], references: [id])
+  orgRole      OrganizationRole @relation(fields: [orgRoleId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, email])
+  @@index([organizationId, status])
+  @@index([orgRoleId])
+}
+
+model AuditLog {
+  id             String      @id @default(uuid()) @db.Uuid
+  organizationId String?     @db.Uuid
+  actorId        String?     @db.Uuid
+  action         AuditAction
+  targetType     String?
+  targetId       String?
+  metadata       Json?
+  createdAt      DateTime    @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  actor        User?         @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([actorId])
+}
+
+model Site {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  name           String
+  address        String?
+  timezone       String   @default("Asia/Kolkata")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  teams        Team[]
+  shifts       Shift[]
+  incidents    Incident[]
+  profiles     WorkforceProfile[]
+  channel      ChannelMapping?
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model Team {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  siteId         String?  @db.Uuid
+  name           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  site         Site?             @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  members      TeamMember[]
+  incidents    Incident[]
+  channel      ChannelMapping?
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model TeamMember {
+  teamId String @db.Uuid
+  userId String @db.Uuid
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, userId])
+  @@index([userId])
+}
+
+model Skill {
+  id             String @id @default(uuid()) @db.Uuid
+  organizationId String @db.Uuid
+  name           String
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  users        UserSkill[]
+
+  @@unique([organizationId, name])
+}
+
+model UserSkill {
+  userId  String @db.Uuid
+  skillId String @db.Uuid
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([userId, skillId])
+}
+
+model WorkforceProfile {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  userId         String       @db.Uuid
+  siteId         String?      @db.Uuid
+  availability   Availability @default(AVAILABLE)
+  updatedAt      DateTime     @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  site         Site?        @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([organizationId, availability])
+}
+
+model Shift {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  siteId         String   @db.Uuid
+  name           String
+  /// ISO weekdays: 1=Mon … 7=Sun
+  daysOfWeek     Int[]
+  /// Local site time as HH:mm
+  startTime      String
+  /// Local site time as HH:mm (may be earlier than startTime for overnight shifts)
+  endTime        String
+  supervisorId   String?  @db.Uuid
+  createdAt      DateTime @default(now())
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  site         Site              @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  supervisor   User?             @relation("ShiftSupervisor", fields: [supervisorId], references: [id], onDelete: SetNull)
+  assignments  ShiftAssignment[]
+  handovers    ShiftHandover[]
+  channel      ChannelMapping?
+
+  @@index([organizationId, siteId])
+}
+
+model ShiftAssignment {
+  shiftId String @db.Uuid
+  userId  String @db.Uuid
+
+  shift Shift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([shiftId, userId])
+}
+
+model Incident {
+  id              String            @id @default(uuid()) @db.Uuid
+  organizationId  String            @db.Uuid
+  number          String
+  sequence        Int
+  title           String
+  description     String
+  category        IncidentCategory
+  priority        IncidentPriority
+  status          IncidentStatus    @default(OPEN)
+  siteId          String            @db.Uuid
+  location        String?
+  equipment       String?
+  teamId          String?           @db.Uuid
+  assigneeId      String?           @db.Uuid
+  dueAt           DateTime?
+  resolutionNotes String?
+  resolvedAt      DateTime?
+  closedAt        DateTime?
+  createdById     String            @db.Uuid
+  channelSetup    ChannelSetupStatus @default(PENDING)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  site         Site               @relation(fields: [siteId], references: [id], onDelete: Restrict)
+  team         Team?              @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  assignee     User?              @relation("IncidentAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdBy    User               @relation("IncidentCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  events       IncidentEvent[]
+  channel      ChannelMapping?
+  media        MediaAsset[]
+  snapshots    AiContextSnapshot[]
+  batches      ConversationBatchSummary[]
+  sessions     AiAssistantSession[]
+  escalations  EscalationEvent[]
+
+  @@unique([organizationId, number])
+  @@unique([organizationId, sequence])
+  @@index([organizationId, status, priority])
+  @@index([assigneeId])
+  @@index([siteId])
+}
+
+model IncidentEvent {
+  id         String   @id @default(uuid()) @db.Uuid
+  incidentId String   @db.Uuid
+  actorId    String?  @db.Uuid
+  type       String
+  message    String
+  createdAt  DateTime @default(now())
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  actor    User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([incidentId, createdAt])
+}
+
+model ChannelMapping {
+  id             String             @id @default(uuid()) @db.Uuid
+  organizationId String             @db.Uuid
+  kind           ChannelKind
+  channelId      String             @unique
+  name           String
+  setupStatus    ChannelSetupStatus @default(PENDING)
+  lastError      String?
+  incidentId     String?            @unique @db.Uuid
+  teamId         String?            @unique @db.Uuid
+  siteId         String?            @unique @db.Uuid
+  shiftId        String?            @unique @db.Uuid
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  incident     Incident?    @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  team         Team?        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  site         Site?        @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  shift        Shift?       @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, kind])
+}
+
+model WebhookReceipt {
+  id         String   @id
+  type       String
+  receivedAt DateTime @default(now())
+}
+
+model MessageIndex {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  channelId      String
+  messageId      String   @unique
+  senderUserId   String
+  messageType    String
+  content        String
+  sentAt         DateTime
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([channelId, sentAt])
+}
+
+model PresenceState {
+  userId    String   @id @db.Uuid
+  status    String
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MediaAsset {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  publicId       String       @unique
+  assetId        String?
+  resourceType   String
+  format         String?
+  filename       String
+  mimeType       String
+  bytes          Int
+  width          Int?
+  height         Int?
+  duration       Float?
+  purpose        MediaPurpose
+  incidentId     String?      @db.Uuid
+  uploadedById   String       @db.Uuid
+  createdAt      DateTime     @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  incident     Incident?    @relation(fields: [incidentId], references: [id], onDelete: SetNull)
+  uploadedBy   User         @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, incidentId])
+}
+
+model UploadGrant {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @db.Uuid
+  publicId       String       @unique
+  folder         String
+  purpose        MediaPurpose
+  incidentId     String?      @db.Uuid
+  createdById    String       @db.Uuid
+  expiresAt      DateTime
+  usedAt         DateTime?
+  createdAt      DateTime     @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, expiresAt])
+}
+
+model Notification {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  userId         String           @db.Uuid
+  kind           NotificationKind
+  title          String
+  body           String
+  incidentId     String?          @db.Uuid
+  dedupeKey      String           @unique
+  readAt         DateTime?
+  createdAt      DateTime         @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+}
+
+model EscalationPolicy {
+  organizationId  String @id @db.Uuid
+  criticalMinutes Int    @default(5)
+  highMinutes     Int    @default(15)
+  mediumMinutes   Int    @default(30)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model EscalationEvent {
+  id         String   @id @default(uuid()) @db.Uuid
+  incidentId String   @db.Uuid
+  priority   IncidentPriority
+  dedupeKey  String   @unique
+  firedAt    DateTime @default(now())
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@index([incidentId])
+}
+
+model AiContextSnapshot {
+  id                  String           @id @default(uuid()) @db.Uuid
+  incidentId          String           @db.Uuid
+  version             Int
+  status              AiSnapshotStatus
+  watermarkEventAt    DateTime?
+  watermarkMessageId  String?
+  payload             Json
+  sourceRefs          Json
+  error               String?
+  createdAt           DateTime         @default(now())
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@unique([incidentId, version])
+  @@index([incidentId, createdAt])
+}
+
+model ConversationBatchSummary {
+  id               String   @id @default(uuid()) @db.Uuid
+  incidentId       String   @db.Uuid
+  fromMessageId    String
+  toMessageId      String
+  messageCount     Int
+  summary          Json
+  sourceMessageIds Json
+  createdAt        DateTime @default(now())
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@index([incidentId, createdAt])
+}
+
+model AiAssistantSession {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  userId         String   @db.Uuid
+  incidentId     String   @db.Uuid
+  createdAt      DateTime @default(now())
+
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  incident     Incident             @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  messages     AiAssistantMessage[]
+
+  @@index([incidentId, userId])
+}
+
+model AiAssistantMessage {
+  id             String   @id @default(uuid()) @db.Uuid
+  sessionId      String   @db.Uuid
+  role           String
+  content        String
+  contextVersion Int?
+  createdAt      DateTime @default(now())
+
+  session AiAssistantSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+model ShiftHandover {
+  id             String         @id @default(uuid()) @db.Uuid
+  organizationId String         @db.Uuid
+  shiftId        String?        @db.Uuid
+  status         HandoverStatus @default(DRAFT)
+  report         Json
+  createdById    String         @db.Uuid
+  createdAt      DateTime       @default(now())
+  publishedAt    DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  shift        Shift?       @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+}

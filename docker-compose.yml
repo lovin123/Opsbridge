@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: fieldops
+      POSTGRES_PASSWORD: fieldops
+      POSTGRES_DB: fieldops
+    ports:
+      - "5433:5432"
+    volumes:
+      - fieldops_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fieldops -d fieldops"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      NODE_ENV: production
+      API_PORT: 4000
+      WEB_ORIGIN: http://localhost:3000
+      DATABASE_URL: postgresql://fieldops:fieldops@postgres:5432/fieldops
+      REDIS_URL: redis://redis:6379
+      SESSION_TTL_HOURS: 168
+      SESSION_COOKIE_NAME: fieldops_session
+      DEMO_PASSWORD: FieldOps-demo-2026
+      NEXCONN_AREA_CODE: SG
+      NEXCONN_API_BASE_URL: https://api.sg-light-api.com
+      GEMINI_MODEL: gemini-3.8-flash
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      API_INTERNAL_URL: http://api:4000
+      NEXT_PUBLIC_NEXCONN_APP_KEY: ""
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  fieldops_pg:

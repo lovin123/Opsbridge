@@ -93,14 +93,16 @@ function ensureRemoteVideoElement(userId: string): HTMLVideoElement | null {
     return existing;
   }
   const video = document.createElement("video");
-  video.autoplay = true;
+  // Do not set autoplay before a stream exists — empty media play() throws NotSupportedError.
   video.playsInline = true;
+  video.muted = false;
   video.dataset.nexconnUserId = userId;
   video.style.width = "100%";
   video.style.height = "100%";
   video.style.objectFit = "cover";
   video.style.background = "#0f172a";
   video.style.borderRadius = "12px";
+  video.addEventListener("error", () => undefined);
   remoteVideoHost.appendChild(video);
   remoteVideoEls.set(userId, video);
   return video;
@@ -141,6 +143,9 @@ function syncRemoteVideoViews(userIds: string[]) {
   if (views.length > 0) {
     try {
       callEngine.setRemoteVideoView(views);
+      for (const view of views) {
+        void view.videoElement.play().catch(() => undefined);
+      }
     } catch {
       // ignore
     }
@@ -266,6 +271,7 @@ function bindLocalPreview() {
   }
   try {
     callEngine.setLocalVideoView({ videoElement: localVideoEl });
+    void localVideoEl.play().catch(() => undefined);
   } catch {
     // ignore
   }

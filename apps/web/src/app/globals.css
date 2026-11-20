@@ -226,6 +226,19 @@ body {
   display: block;
 }
 
+/*
+ * Channel embed already has an Opsbridge toolbar (title + call/voice + Connected).
+ * ChatUI's detail bar lives in shadow DOM — also hidden via hideChatUiChannelDetailBar().
+ * Keep this for any light-DOM fallback.
+ */
+.nexconn-host--channel nc-channel-detail-bar-provider {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
 #nexconn-modal-root {
   position: relative;
   z-index: 1000;

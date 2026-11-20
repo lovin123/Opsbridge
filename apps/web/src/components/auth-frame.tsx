@@ -30,7 +30,7 @@ export function AuthFrame({
         }}
       >
         <Flex direction="column" justify="between" height="100%" style={{ minHeight: "calc(100vh - 4rem)" }}>
-          <BrandLogo href="/" size="md" tone="onDark" priority />
+          <BrandLogo href="/" size="lg" tone="onDark" priority />
           <Box style={{ maxWidth: 460 }}>
             <Heading size="8" weight="bold" highContrast style={{ lineHeight: 1.1, color: "white" }}>
               Operations, bridged in one workspace.

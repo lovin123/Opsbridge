@@ -153,7 +153,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <aside className={sidebarOpen ? "sidebar sidebar-open" : "sidebar sidebar-closed"}>
         <div className="sidebar-inner">
           <div className="sidebar-brand">
-            <BrandLogo href="/app" size="md" className="sidebar-brand-link" />
+            <BrandLogo href="/app" size="lg" className="sidebar-brand-link" />
             <IconButton
               variant="ghost"
               color="gray"

@@ -53,6 +53,28 @@ export function NexconnCallOverlay() {
     });
   }, [snapshot.phase, snapshot.mediaType]);
 
+  // Never leave <video autoPlay> with an empty source — browsers throw NotSupportedError
+  // ("Failed to load because no supported source was found") into the Next.js overlay.
+  useEffect(() => {
+    const local = localRef.current;
+    if (!local) {
+      return;
+    }
+    const onError = () => {
+      // Swallow empty/unsupported source noise while idle or mid-setup.
+    };
+    local.addEventListener("error", onError);
+    if (local.srcObject) {
+      void local.play().catch(() => undefined);
+    } else {
+      local.removeAttribute("src");
+      local.load();
+    }
+    return () => {
+      local.removeEventListener("error", onError);
+    };
+  }, [snapshot.phase, snapshot.mediaType]);
+
   const showVideo = snapshot.mediaType === "video";
   const active = snapshot.phase !== "idle";
 
@@ -111,9 +133,9 @@ export function NexconnCallOverlay() {
             <Box style={{ position: "relative", minHeight: showVideo ? 120 : 1 }}>
               <video
                 ref={localRef}
-                autoPlay
                 muted
                 playsInline
+                // autoPlay only after Call SDK binds srcObject — empty autoPlay throws NotSupportedError
                 style={{
                   width: "100%",
                   height: "100%",

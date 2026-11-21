@@ -27,19 +27,26 @@ The seed does not create incidents or chat messages.
 
 - Node.js 22 or newer
 - pnpm 12
-- Docker, for PostgreSQL 16 and Redis 7
+- Managed PostgreSQL and Redis (Compose does not run them)
+- Docker optional, for building/running the API and web containers
 
 ## Run locally
 
 ```bash
-docker compose up -d postgres redis
 cp .env.example .env
+# Set DATABASE_URL and REDIS_URL to your managed Postgres / Redis
 pnpm install
-pnpm --filter @Opsbridge/shared build
+pnpm --filter @fieldops/shared build
 pnpm db:migrate
 pnpm db:seed
 pnpm dev:api
 pnpm dev:web
+```
+
+Full stack in Docker (still uses the same external DB/Redis from `.env`):
+
+```bash
+docker compose up --build
 ```
 
 - Web: http://localhost:3000

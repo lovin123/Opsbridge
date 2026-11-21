@@ -1,12 +1,41 @@
+# Dependencies & build output (rebuilt inside the image)
 node_modules
 **/node_modules
 **/.next
 **/dist
-**/.git
 **/coverage
-**/*.md
+**/.turbo
+**/.cache
+
+# VCS / IDE / local tooling
+.git
+.github
+.cursor
+.vscode
+**/.DS_Store
+
+# Secrets — inject at runtime via Compose env_file / orchestrator
+.env
+.env.*
+!.env.example
+apps/api/.env
+apps/web/.env
+apps/web/.env.local
+apps/web/.env*.local
+
+# Tests & reports (not needed to run the apps)
+**/test
+**/tests
+**/*.spec.ts
+**/*.e2e-spec.ts
 playwright-report
 test-results
-.env
-apps/api/.env
-apps/web/.env.local
+apps/web/playwright.config.ts
+
+# Docs / misc (keep Dockerfiles & compose in context via explicit paths)
+**/*.md
+!README.md
+
+# Local agent / debug leftovers
+**/.tmp-*
+**/agent-transcripts

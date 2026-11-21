@@ -1,65 +1,53 @@
+# App containers only. Postgres and Redis are external — set DATABASE_URL and
+# REDIS_URL in `.env` (see `.env.example`). Secrets stay in `.env`, not here.
+#
+# Working order:
+#   1. cp .env.example .env  → fill DATABASE_URL, REDIS_URL, and API secrets
+#   2. docker compose up --build
+#   3. Web http://localhost:3000  ·  API http://localhost:4000/api/v1
 services:
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: fieldops
-      POSTGRES_PASSWORD: fieldops
-      POSTGRES_DB: fieldops
-    ports:
-      - "5433:5432"
-    volumes:
-      - fieldops_pg:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fieldops -d fieldops"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6380:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
   api:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+    env_file:
+      - .env
     environment:
+      # Override local .env values that differ inside Compose
       NODE_ENV: production
-      API_PORT: 4000
-      WEB_ORIGIN: http://localhost:3000
-      DATABASE_URL: postgresql://fieldops:fieldops@postgres:5432/fieldops
-      REDIS_URL: redis://redis:6379
-      SESSION_TTL_HOURS: 168
-      SESSION_COOKIE_NAME: fieldops_session
-      DEMO_PASSWORD: FieldOps-demo-2026
-      NEXCONN_AREA_CODE: SG
-      NEXCONN_API_BASE_URL: https://api.sg-light-api.com
-      GEMINI_MODEL: gemini-3.8-flash
+      API_PORT: "4000"
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
+      # DATABASE_URL + REDIS_URL: from env_file (.env) → managed services
     ports:
       - "4000:4000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:4000/api/v1/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 60s
 
   web:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      args:
+        API_INTERNAL_URL: http://api:4000
+        NEXT_PUBLIC_NEXCONN_APP_KEY: ${NEXT_PUBLIC_NEXCONN_APP_KEY:-}
+    # Do not env_file the full .env — that would leak API secrets into the web container.
     environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+      # Must reach the API service name on the Compose network (not localhost)
       API_INTERNAL_URL: http://api:4000
-      NEXT_PUBLIC_NEXCONN_APP_KEY: ""
+      NEXT_PUBLIC_NEXCONN_APP_KEY: ${NEXT_PUBLIC_NEXCONN_APP_KEY:-}
     ports:
       - "3000:3000"
     depends_on:
-      - api
-
-volumes:
-  fieldops_pg:
+      api:
+        condition: service_healthy

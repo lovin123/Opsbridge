@@ -2,15 +2,14 @@
 
 ## 1. Infrastructure
 
-From the repository root:
+Postgres and Redis are **external** (managed). Docker Compose does not run them.
 
-```bash
-docker compose up -d postgres redis
-```
+Copy `.env.example` to `.env` and set:
 
-Postgres is published on `localhost:5433` and Redis on `localhost:6380` so they do not collide with other local services. The database is `fieldops`, user `fieldops`, password `fieldops`.
+- `DATABASE_URL` — managed Postgres (include `sslmode=require` when required)
+- `REDIS_URL` — managed Redis (`rediss://` when TLS is required)
 
-Copy `.env.example` to `.env`. The API reads that file when started from `apps/api`. Prisma commands use `dotenv -e ../../.env`.
+The API reads `.env` when started from `apps/api`. Prisma commands use `dotenv -e ../../.env`.
 
 ## 2. Install and migrate
 
@@ -57,8 +56,27 @@ pnpm test:browser
 
 ## 5. Full stack in Docker
 
+Compose runs **only** `api` and `web`. Postgres and Redis stay external.
+
 ```bash
+# 1) Env (managed DB/Redis + secrets)
+cp .env.example .env
+# Set DATABASE_URL, REDIS_URL, WEB_ORIGIN=http://localhost:3000, and API secrets
+
+# 2) Build & start
 docker compose up --build
+
+# 3) Open
+# Web  http://localhost:3000
+# API  http://localhost:4000/api/v1
+# Docs http://localhost:4000/api/docs
 ```
 
-The API container runs `prisma migrate deploy` before listening. Set Nexconn, Groq, and Cloudinary secrets in the compose environment when those phases are implemented. Do not put those secrets in the web image.
+What each container does:
+
+| Service | Build | Start |
+| --- | --- | --- |
+| `api` | install → build `@fieldops/shared` → `prisma generate` → Nest build | `prisma migrate deploy` → `node dist/main.js` |
+| `web` | install → build shared → `next build` (needs `API_INTERNAL_URL` / `NEXT_PUBLIC_*` build args) | `next start` on `:3000`, proxies `/api/v1` to `http://api:4000` |
+
+Secrets come from `.env` via `env_file` (`.env` is dockerignored and not copied into images). Compose overrides `NODE_ENV=production` and sets `API_INTERNAL_URL=http://api:4000` for the web service.

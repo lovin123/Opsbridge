@@ -53,12 +53,10 @@ COPY --from=build /app/apps/api ./apps/api
 COPY --from=build /app/apps/web/package.json ./apps/web/package.json
 COPY --from=build /app/packages/shared ./packages/shared
 
-# Ensure LF line endings and executable bit for the entrypoint
-RUN sed -i 's/\r$//' /app/apps/api/docker-entrypoint.sh \
-  && chmod +x /app/apps/api/docker-entrypoint.sh
-
 EXPOSE 4000
 
-# migrate deploy (baseline on P3005 if the managed DB already has schema) → Nest
-ENTRYPOINT ["/app/apps/api/docker-entrypoint.sh"]
+# Schema already lives on managed Postgres (Aiven). Do not run prisma migrate here.
+# Apply schema changes manually when needed: pnpm db:deploy / db:migrate locally.
+CMD ["pnpm", "--filter", "@fieldops/api", "start:prod"]
+
 

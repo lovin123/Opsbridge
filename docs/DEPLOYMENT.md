@@ -19,7 +19,7 @@ Provide these via `.env` / orchestrator secrets (Compose uses `env_file: .env`):
 
 Leave `NEXCONN_APP_SECRET`, `GROQ_API_KEY`, and `CLOUDINARY_API_SECRET` on the API only. `NEXT_PUBLIC_NEXCONN_APP_KEY` is the only Nexconn value the browser may need (Compose passes it as a web build arg).
 
-API startup runs `prisma migrate deploy`. If the managed database already has tables but no `_prisma_migrations` history (Prisma **P3005**), the entrypoint baselines existing migrations with `prisma migrate resolve --applied`, then continues. Seed demo accounts only in a development database.
+The API container does **not** run Prisma migrations at startup — the managed database (e.g. Aiven) is assumed to already have the schema. Apply schema changes out of band with `pnpm db:deploy` / `pnpm db:migrate` when you intentionally change the schema. Seed demo accounts only in a development database.
 
 ## Health
 

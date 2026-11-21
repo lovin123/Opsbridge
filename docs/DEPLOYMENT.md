@@ -19,7 +19,7 @@ Provide these via `.env` / orchestrator secrets (Compose uses `env_file: .env`):
 
 Leave `NEXCONN_APP_SECRET`, `GROQ_API_KEY`, and `CLOUDINARY_API_SECRET` on the API only. `NEXT_PUBLIC_NEXCONN_APP_KEY` is the only Nexconn value the browser may need (Compose passes it as a web build arg).
 
-Run `prisma migrate deploy` as part of API startup, which the container command already does. Seed demo accounts only in a development database.
+API startup runs `prisma migrate deploy`. If the managed database already has tables but no `_prisma_migrations` history (Prisma **P3005**), the entrypoint baselines existing migrations with `prisma migrate resolve --applied`, then continues. Seed demo accounts only in a development database.
 
 ## Health
 

@@ -76,7 +76,7 @@ What each container does:
 
 | Service | Build | Start |
 | --- | --- | --- |
-| `api` | install → build `@fieldops/shared` → `prisma generate` → Nest build | `prisma migrate deploy` → `node dist/main.js` |
+| `api` | install → build `@fieldops/shared` → `prisma generate` → Nest build | `prisma migrate deploy` (auto-baseline on P3005) → Nest `start:prod` |
 | `web` | install → build shared → `next build` (needs `API_INTERNAL_URL` / `NEXT_PUBLIC_*` build args) | `next start` on `:3000`, proxies `/api/v1` to `http://api:4000` |
 
 Secrets come from `.env` via `env_file` (`.env` is dockerignored and not copied into images). Compose overrides `NODE_ENV=production` and sets `API_INTERNAL_URL=http://api:4000` for the web service.

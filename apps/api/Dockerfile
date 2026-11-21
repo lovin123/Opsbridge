@@ -37,7 +37,8 @@ COPY . .
 
 RUN pnpm --filter @fieldops/shared build \
   && pnpm --filter @fieldops/api exec prisma generate \
-  && pnpm --filter @fieldops/api build
+  && pnpm --filter @fieldops/api build \
+  && test -f apps/api/dist/main.js
 
 # --- runtime ---
 FROM base AS runner
@@ -56,7 +57,7 @@ COPY --from=build /app/packages/shared ./packages/shared
 EXPOSE 4000
 
 # Schema already lives on managed Postgres (Aiven). Do not run prisma migrate here.
-# Apply schema changes manually when needed: pnpm db:deploy / db:migrate locally.
-CMD ["pnpm", "--filter", "@fieldops/api", "start:prod"]
+# Start node directly — avoids pnpm re-install / workspace reconcile at container boot.
+CMD ["node", "apps/api/dist/main.js"]
 
 

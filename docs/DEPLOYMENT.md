@@ -4,7 +4,7 @@ Dockerfiles ship for the API and web app. Compose runs **only** those two servic
 
 ## Containers
 
-- `apps/api/Dockerfile` builds the workspace, generates the Prisma client, compiles the API, then runs migrations and `node apps/api/dist/main.js`. Needs `ca-certificates` for TLS to managed Postgres/Redis.
+- `apps/api/Dockerfile` builds the workspace, generates the Prisma client, compiles the API, then starts with `node apps/api/dist/main.js` (no migrate on boot). Needs `ca-certificates` for TLS to managed Postgres/Redis.
 - `apps/web/Dockerfile` builds Next.js. `API_INTERNAL_URL` must point at the API on the Docker network (`http://api:4000` in Compose).
 
 ## Production configuration

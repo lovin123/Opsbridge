@@ -20,7 +20,7 @@ pnpm db:migrate
 pnpm db:seed
 ```
 
-`pnpm db:migrate` creates the Phase 1 tables. `pnpm db:seed` upserts ABC Facilities Management and the ten demo accounts. The demo password is `DEMO_PASSWORD` or `FieldOps-demo-2026`.
+`pnpm db:migrate` creates / updates tables. `pnpm db:seed` upserts ABC Facilities Management and the ten demo accounts. The demo password is `DEMO_PASSWORD` or `Opsbridge-demo-2026`.
 
 ## 3. Applications
 

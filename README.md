@@ -80,8 +80,9 @@ Copy `.env.example` → `.env`. Important variables:
 
 | Variable | Where | Notes |
 | --- | --- | --- |
-| `DATABASE_URL` | API | Managed Postgres; use `sslmode=require` when the provider requires TLS |
+| `DATABASE_URL` | API | Managed Postgres; use `sslmode=require` and keep `connection_limit=5` on free Aiven |
 | `REDIS_URL` | API | Managed Redis; use `rediss://` for TLS |
+| `QUEUE_DRIVER` | API | `inline` (default, Upstash-safe) or `bullmq` (needs high Redis command allowance) |
 | `WEB_ORIGIN` | API | CORS / origin checks (e.g. `http://localhost:3000`) |
 | `API_INTERNAL_URL` | Web | Local: `http://localhost:4000`; Compose: `http://api:4000` |
 | `SESSION_COOKIE_NAME` / `SESSION_TTL_HOURS` | API | Cookie session |
@@ -123,6 +124,7 @@ Details: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md), [docs/DEVELOPMENT_SETUP.md](d
 | --- | --- |
 | `pnpm dev` | Shared build + API and web in parallel |
 | `pnpm build` | Build shared, API, and web |
+| `pnpm cleanup:free-tier` | Prune BullMQ history + expired Postgres rows (`--postgres-only` if Redis quota is exhausted) |
 | `pnpm db:generate` / `db:migrate` / `db:deploy` / `db:seed` | Prisma |
 | `pnpm test:unit` | API unit tests |
 | `pnpm test:e2e` | API integration tests (needs Postgres + Redis) |

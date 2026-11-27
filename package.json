@@ -22,6 +22,7 @@
     "db:migrate": "pnpm --filter @fieldops/api db:migrate",
     "db:deploy": "pnpm --filter @fieldops/api db:deploy",
     "db:seed": "pnpm --filter @fieldops/api db:seed",
+    "cleanup:free-tier": "node --env-file=.env scripts/cleanup-free-tier.mjs",
     "format": "prettier --write \"apps/api/src/**/*.ts\" \"apps/api/test/**/*.ts\" \"packages/shared/src/**/*.ts\""
   }
 }

@@ -6,6 +6,11 @@ export const envSchema = z.object({
   WEB_ORIGIN: z.string().min(1).default('http://localhost:3000'),
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().min(1).default('redis://localhost:6379'),
+  /**
+   * inline = process jobs in-process (recommended for Upstash free; avoids BullMQ command burn).
+   * bullmq = Redis-backed queue (needs a Redis plan with high command allowance).
+   */
+  QUEUE_DRIVER: z.enum(['inline', 'bullmq']).default('inline'),
   SESSION_TTL_HOURS: z.coerce.number().int().positive().default(168),
   SESSION_COOKIE_NAME: z.string().min(1).default('opsbridge_session'),
   NEXCONN_APP_KEY: z.string().optional().default(''),

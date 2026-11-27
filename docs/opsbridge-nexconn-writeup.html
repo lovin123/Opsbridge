@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Opsbridge — Nexconn Write-up</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #0f172a;
+        --muted: #475569;
+        --line: #e2e8f0;
+        --accent: #1d4ed8;
+        --accent-soft: #eff6ff;
+        --paper: #ffffff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      @page {
+        size: A4;
+        margin: 18mm 16mm;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--paper);
+        font-family: "DM Sans", system-ui, sans-serif;
+        font-size: 11pt;
+        line-height: 1.55;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .page {
+        max-width: 720px;
+        margin: 0 auto;
+      }
+
+      .hero {
+        border-bottom: 3px solid var(--ink);
+        padding-bottom: 18px;
+        margin-bottom: 28px;
+      }
+
+      .eyebrow {
+        display: inline-block;
+        font-size: 9pt;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent);
+        background: var(--accent-soft);
+        padding: 4px 10px;
+        border-radius: 999px;
+        margin-bottom: 12px;
+      }
+
+      h1 {
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 26pt;
+        font-weight: 700;
+        line-height: 1.15;
+        margin: 0 0 10px;
+        letter-spacing: -0.02em;
+      }
+
+      .subtitle {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12pt;
+        max-width: 38em;
+      }
+
+      .meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 24px;
+        margin-top: 18px;
+        padding-top: 14px;
+        border-top: 1px solid var(--line);
+        font-size: 10pt;
+      }
+
+      .meta dt {
+        color: var(--muted);
+        font-weight: 500;
+        margin: 0;
+      }
+
+      .meta dd {
+        margin: 2px 0 0;
+        font-weight: 600;
+      }
+
+      h2 {
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 14pt;
+        font-weight: 600;
+        margin: 28px 0 10px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      p {
+        margin: 0 0 12px;
+        color: var(--ink);
+      }
+
+      .lead {
+        font-size: 11.5pt;
+        color: var(--ink);
+      }
+
+      ul {
+        margin: 8px 0 14px;
+        padding-left: 1.15em;
+      }
+
+      li {
+        margin: 0 0 8px;
+      }
+
+      li strong {
+        font-weight: 600;
+      }
+
+      .card {
+        background: #f8fafc;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin: 12px 0 16px;
+      }
+
+      .card h3 {
+        margin: 0 0 6px;
+        font-size: 11pt;
+        font-weight: 600;
+      }
+
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 10.5pt;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin: 12px 0 8px;
+      }
+
+      .pill {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px 12px;
+        background: #fff;
+      }
+
+      .pill .label {
+        display: block;
+        font-size: 8.5pt;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 4px;
+      }
+
+      .pill .value {
+        font-size: 10.5pt;
+        color: var(--ink);
+        font-weight: 500;
+      }
+
+      .footer {
+        margin-top: 28px;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
+        font-size: 9pt;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <div class="eyebrow">Nexconn Hackathon Submission</div>
+        <h1>Opsbridge</h1>
+        <p class="subtitle">
+          A workforce operations platform that keeps field teams, supervisors, and managers aligned—
+          with real-time communication built on the Nexconn SDK.
+        </p>
+        <dl class="meta">
+          <div>
+            <dt>Product</dt>
+            <dd>Opsbridge</dd>
+          </div>
+          <div>
+            <dt>Built for</dt>
+            <dd>Facilities &amp; field-service teams</dd>
+          </div>
+          <div>
+            <dt>Nexconn App Key</dt>
+            <dd>e5t4ouvpenwva</dd>
+          </div>
+          <div>
+            <dt>Nexconn Area</dt>
+            <dd>SG</dd>
+          </div>
+        </dl>
+      </header>
+
+      <section>
+        <h2>Why we built Opsbridge</h2>
+        <p class="lead">
+          When something breaks on site—power down, access issue, equipment fault—the work is urgent,
+          but the coordination is usually messy. Teams jump between WhatsApp groups, phone calls, and
+          spreadsheets. Context gets lost, the wrong people get pulled in, and there is no single place
+          that ties the incident to the conversation.
+        </p>
+        <p>
+          Opsbridge exists to close that gap. It is built for organization admins, operations managers,
+          supervisors, and technicians who need one system for day-to-day operations and one place to
+          talk when it matters.
+        </p>
+      </section>
+
+      <section>
+        <h2>The problem it solves</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Scattered communication</h3>
+            <p>Incident chat lives outside the work system, so history and ownership are hard to find later.</p>
+          </div>
+          <div class="card">
+            <h3>Slow coordination</h3>
+            <p>Managers struggle to reach the right on-shift people quickly when a site issue escalates.</p>
+          </div>
+          <div class="card">
+            <h3>Weak operational context</h3>
+            <p>Sites, crews, shifts, and incidents sit in separate tools, so decisions miss key detail.</p>
+          </div>
+          <div class="card">
+            <h3>No shared incident thread</h3>
+            <p>Each issue needs its own focused channel—not a noisy general chat that everyone ignores.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>What the product does</h2>
+        <p>
+          Opsbridge is a multi-tenant operations hub. Teams manage their organization, sites, and crews;
+          plan shifts and handovers; raise and track incidents; and coordinate in real time with chat,
+          voice notes, and calls—without leaving the workflow.
+        </p>
+        <ul>
+          <li><strong>Organization &amp; access</strong> — multi-tenant workspaces, invitations, and role-based access for admins, managers, supervisors, and technicians.</li>
+          <li><strong>Workforce operations</strong> — sites, teams, skills, availability, shifts, and shift handovers.</li>
+          <li><strong>Incident management</strong> — create, assign, update status, attach evidence, and follow the issue through to resolution.</li>
+          <li><strong>Operations center</strong> — dashboard visibility, notifications, and escalation policy so open work does not get buried.</li>
+          <li><strong>Communications</strong> — channel-based messaging for sites/teams and people-to-people conversations, embedded next to the work.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Key use cases</h2>
+        <div class="card">
+          <h3>1. Site incident response</h3>
+          <p>
+            A technician or supervisor raises an incident for a site. The team assigns an owner, discusses
+            the issue in the incident channel, shares updates or voice notes from the field, and escalates
+            with a call if needed—then closes the loop when the site is back online.
+          </p>
+        </div>
+        <div class="card">
+          <h3>2. Day-to-day crew coordination</h3>
+          <p>
+            Managers and supervisors use site or team channels in Communications to keep the crew aligned
+            during the shift, while direct messages handle quick one-to-one follow-ups.
+          </p>
+        </div>
+        <div class="card">
+          <h3>3. Shift handover continuity</h3>
+          <p>
+            Outgoing and incoming supervisors hand over context in Opsbridge so the next shift starts with
+            clear ownership—and can continue the conversation in the same operational channels.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Nexconn SDK features used</h2>
+        <p>
+          Real-time communication in Opsbridge is powered by the Nexconn SDK. These are the capabilities
+          we rely on, and where they show up for users:
+        </p>
+        <ul>
+          <li><strong>Group channels</strong> — shared conversations for incidents, sites, and teams inside Communications and the incident workspace.</li>
+          <li><strong>Direct (1:1) channels</strong> — private messaging between people from the Communications directory.</li>
+          <li><strong>Message history &amp; live messaging</strong> — open a channel and continue the thread with full conversation history and real-time updates.</li>
+          <li><strong>Voice notes</strong> — send short voice updates from the chat toolbar when typing is impractical on site.</li>
+          <li><strong>Speech-to-text</strong> — transcribe voice messages in chat when the feature is enabled for the app.</li>
+          <li><strong>Audio &amp; video calls</strong> — start 1:1 or group calls from the chat header for urgent coordination.</li>
+          <li><strong>Presence &amp; connection awareness</strong> — clear connected/reconnecting state so users know when messaging is live.</li>
+          <li><strong>User &amp; group profiles</strong> — channel names, people names, and member counts shown in the chat experience.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Nexconn application details</h2>
+        <div class="pill" style="margin-bottom: 10px">
+          <span class="label">App Key</span>
+          <div class="value">e5t4ouvpenwva</div>
+        </div>
+        <div class="pill">
+          <span class="label">Area</span>
+          <div class="value">SG</div>
+        </div>
+        <p style="margin-top: 12px; color: var(--muted); font-size: 10pt">
+          The App Secret remains server-side only and is not included in this document.
+        </p>
+      </section>
+
+      <footer class="footer">
+        Opsbridge · Nexconn Hackathon Write-up · Built for facilities and field-service operations teams
+      </footer>
+    </main>
+  </body>
+</html>

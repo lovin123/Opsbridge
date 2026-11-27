@@ -592,10 +592,12 @@ export class NexconnService {
       throw error;
     }
     try {
+      // Keep Redis job payloads tiny on free Upstash — only the first event item is processed.
+      const slim = Array.isArray(event.data) ? event.data.slice(0, 1) : [];
       await this.queue.enqueueOrThrow('nexconn-event', {
         eventId: event.id,
         type: event.type,
-        data: JSON.stringify(event.data),
+        data: JSON.stringify(slim),
       });
     } catch (error) {
       await this.prisma.webhookReceipt.delete({ where: { id: event.id } }).catch(() => undefined);
